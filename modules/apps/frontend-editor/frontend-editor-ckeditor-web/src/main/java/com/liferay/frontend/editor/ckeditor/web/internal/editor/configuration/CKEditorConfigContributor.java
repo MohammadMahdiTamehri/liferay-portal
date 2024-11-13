@@ -81,7 +81,7 @@ public class CKEditorConfigContributor extends BaseCKEditorConfigContributor {
 
 		String extraPlugins =
 			"addimages,autogrow,autolink,filebrowser,itemselector,lfrpopup," +
-				"media,stylescombo,videoembed,bidi";
+				"media,stylescombo,videoembed,bidi,font,lineheight";
 
 		boolean inlineEdit = GetterUtil.getBoolean(
 			(String)inputEditorTaglibAttributes.get(
@@ -202,7 +202,7 @@ public class CKEditorConfigContributor extends BaseCKEditorConfigContributor {
 		Map<String, Object> inputEditorTaglibAttributes) {
 
 		JSONArray jsonArray = JSONUtil.putAll(
-			toJSONArray("['Undo', 'Redo']"), toJSONArray("['Styles']"),
+			toJSONArray("['Undo', 'Redo']"), toJSONArray("['Styles','Font','FontSize','lineheight']"),
 			toJSONArray(
 				"['Cut', 'Copy', 'Paste', '-', 'PasteText', 'PasteFromWord'," +
 					"'CodeSnippet', '-', 'SelectAll']"),
