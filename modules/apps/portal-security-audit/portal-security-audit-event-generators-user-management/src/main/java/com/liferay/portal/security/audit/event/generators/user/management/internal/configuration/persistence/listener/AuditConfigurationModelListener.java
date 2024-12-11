@@ -14,18 +14,25 @@
 
 package com.liferay.portal.security.audit.event.generators.user.management.internal.configuration.persistence.listener;
 
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListener;
 import com.liferay.portal.kernel.audit.AuditMessage;
 import com.liferay.portal.kernel.audit.AuditRouter;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.security.audit.event.generators.constants.EventTypes;
+import com.liferay.portal.security.audit.event.generators.user.management.util.OnAfterUpdateUtil;
+import com.liferay.portal.security.audit.event.generators.util.Attribute;
 import com.liferay.portal.security.audit.event.generators.util.AuditMessageBuilder;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.Objects;
 
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -347,24 +354,35 @@ public class AuditConfigurationModelListener
 
 	@Override
 	public void onAfterSave(String pid, Dictionary<String, Object> properties) {
+		OnAfterUpdateUtil.update(
+			pid,
+			(long)properties.get(":org.apache.felix.configadmin.revision:"),
+			EventTypes.CONFIGURATION_SAVE);
+	}
+
+	@Override
+	public void onBeforeSave(
+		String pid, Dictionary<String, Object> newProperties) {
+
 		try {
-			AuditMessage auditMessage = AuditMessageBuilder.buildAuditMessage(
-				EventTypes.CONFIGURATION_SAVE, pid,
-				(long)properties.get(":org.apache.felix.configadmin.revision:"),
-				null);
+			Configuration conf = _configurationAdmin.getConfiguration(
+				pid, StringPool.QUESTION);
 
-			JSONObject additionalInfoJSONObject =
-				auditMessage.getAdditionalInfo();
+			Dictionary<String, Object> oldProperties = conf.getProperties();
 
-			Enumeration<String> keysEnumeration = properties.keys();
+			List<Attribute> attributes = getModifiedAttributes(
+				newProperties, oldProperties);
 
-			while (keysEnumeration.hasMoreElements()) {
-				String key = keysEnumeration.nextElement();
+			if (!attributes.isEmpty()) {
+				AuditMessage auditMessage =
+					AuditMessageBuilder.buildAuditMessage(
+						EventTypes.CONFIGURATION_SAVE, pid,
+						(long)newProperties.get(
+							":org.apache.felix.configadmin.revision:"),
+						attributes);
 
-				additionalInfoJSONObject.put(key, properties.get(key));
+				_auditRouter.route(auditMessage);
 			}
-
-			_auditRouter.route(auditMessage);
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -373,10 +391,38 @@ public class AuditConfigurationModelListener
 		}
 	}
 
+	protected List<Attribute> getModifiedAttributes(
+		Dictionary<String, Object> newProperties,
+		Dictionary<String, Object> oldProperties) {
+
+		List<Attribute> attributes = new ArrayList<>();
+
+		Enumeration<String> keysEnumeration = oldProperties.keys();
+
+		while (keysEnumeration.hasMoreElements()) {
+			String name = keysEnumeration.nextElement();
+
+			Object oldValue = oldProperties.get(name);
+			Object newValue = newProperties.get(name);
+
+			if (!Objects.equals(oldValue, newValue)) {
+				Attribute attribute = new Attribute(
+					name, newValue.toString(), oldValue.toString());
+
+				attributes.add(attribute);
+			}
+		}
+
+		return attributes;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		AuditConfigurationModelListener.class);
 
 	@Reference
 	private AuditRouter _auditRouter;
+
+	@Reference
+	private ConfigurationAdmin _configurationAdmin;
 
 }

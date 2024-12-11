@@ -15,6 +15,8 @@
 package com.liferay.portal.security.audit.router.internal;
 
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.portal.kernel.audit.AuditMessage;
+import com.liferay.portal.kernel.audit.AuditRouter;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -22,11 +24,14 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
 import com.liferay.portal.kernel.scheduler.SchedulerEntryImpl;
 import com.liferay.portal.kernel.scheduler.Trigger;
 import com.liferay.portal.kernel.scheduler.TriggerFactory;
+import com.liferay.portal.security.audit.event.generators.constants.EventTypes;
+import com.liferay.portal.security.audit.event.generators.util.AuditMessageBuilder;
 import com.liferay.portal.security.audit.router.configuration.AuditMessageAutoDeleterConfiguration;
 import com.liferay.portal.security.audit.storage.model.AuditEvent;
 import com.liferay.portal.security.audit.storage.service.AuditEventLocalService;
@@ -105,6 +110,20 @@ public class DeleteAuditMessagesListener extends BaseMessageListener {
 					_auditEventLocalService.deleteAuditEvent(
 						auditEvent.getAuditEventId()));
 			actionableDynamicQuery.performActions();
+
+			try {
+				AuditMessage auditMessage =
+					AuditMessageBuilder.buildAuditMessage(
+						EventTypes.AUADIT_AUTO_DELETE, User.class.getName(), 0,
+						null);
+
+				_auditRouter.route(auditMessage);
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Unable to route audit message", exception);
+				}
+			}
 		}
 		catch (Exception exception) {
 			_log.error("Error deleting old audit events", exception);
@@ -119,6 +138,9 @@ public class DeleteAuditMessagesListener extends BaseMessageListener {
 
 	private volatile AuditMessageAutoDeleterConfiguration
 		_auditMessageAutoDeleterConfiguration;
+
+	@Reference
+	private AuditRouter _auditRouter;
 
 	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED)
 	private ModuleServiceLifecycle _moduleServiceLifecycle;

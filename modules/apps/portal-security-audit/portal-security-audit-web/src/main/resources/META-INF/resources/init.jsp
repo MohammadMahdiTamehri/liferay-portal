@@ -26,11 +26,16 @@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
 <%@ page import="com.liferay.petra.lang.ClassResolverUtil" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
+page import="com.liferay.portal.kernel.audit.AuditMessage" %><%@
+page import="com.liferay.portal.kernel.audit.AuditRouterUtil" %><%@
 page import="com.liferay.portal.kernel.dao.search.DisplayTerms" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
+page import="com.liferay.portal.kernel.json.JSONArray" %><%@
 page import="com.liferay.portal.kernel.json.JSONFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.json.JSONObject" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
+page import="com.liferay.portal.kernel.log.Log" %><%@
+page import="com.liferay.portal.kernel.log.LogFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.search.*" %><%@
 page import="com.liferay.portal.kernel.util.CalendarFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.util.FastDateFormatFactoryUtil" %><%@
@@ -42,6 +47,8 @@ page import="com.liferay.portal.kernel.util.PortalClassLoaderUtil" %><%@
 page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
+page import="com.liferay.portal.security.audit.event.generators.constants.EventTypes" %><%@
+page import="com.liferay.portal.security.audit.event.generators.util.AuditMessageBuilder" %><%@
 page import="com.liferay.portal.security.audit.storage.model.AuditEvent" %><%@
 page import="com.liferay.portal.security.audit.storage.service.AuditEventLocalServiceUtil" %><%@
 page import="com.liferay.portal.security.audit.web.internal.AuditEventManagerUtil" %>

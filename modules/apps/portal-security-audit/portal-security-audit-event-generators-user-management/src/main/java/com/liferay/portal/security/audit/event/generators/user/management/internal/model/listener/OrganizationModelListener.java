@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.security.audit.event.generators.constants.EventTypes;
+import com.liferay.portal.security.audit.event.generators.user.management.util.OnAfterUpdateUtil;
 import com.liferay.portal.security.audit.event.generators.util.Attribute;
 import com.liferay.portal.security.audit.event.generators.util.AttributesBuilder;
 import com.liferay.portal.security.audit.event.generators.util.AuditMessageBuilder;
@@ -40,6 +41,14 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(immediate = true, service = ModelListener.class)
 public class OrganizationModelListener extends BaseModelListener<Organization> {
+
+	@Override
+	public void onAfterUpdate(Organization organization)
+		throws ModelListenerException {
+
+		OnAfterUpdateUtil.update(
+			Organization.class.getName(), organization.getOrganizationId());
+	}
 
 	@Override
 	public void onBeforeAddAssociation(
@@ -188,6 +197,15 @@ public class OrganizationModelListener extends BaseModelListener<Organization> {
 		attributesBuilder.add("name");
 		attributesBuilder.add("parentOrganizationId");
 		attributesBuilder.add("regionId");
+
+		attributesBuilder.add("externalReferenceCode");
+		attributesBuilder.add("organizationId");
+		attributesBuilder.add("companyId");
+		attributesBuilder.add("treePath");
+		attributesBuilder.add("type");
+		attributesBuilder.add("recursable");
+		attributesBuilder.add("statusId");
+		attributesBuilder.add("logoId");
 
 		return attributesBuilder.getAttributes();
 	}
