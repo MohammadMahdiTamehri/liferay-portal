@@ -19,6 +19,8 @@
 <%
 AuditMessage auditMessage = AuditMessageBuilder.buildAuditMessage(EventTypes.CHECK_AUDIT, AuditEvent.class.getName(), 0, null);
 
+auditMessage.setMessage("Admin just checked the audits.");
+
 try {
 	AuditRouterUtil.route(auditMessage);
 }
